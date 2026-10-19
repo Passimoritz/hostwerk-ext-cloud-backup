@@ -1,0 +1,4 @@
+/* Cloud backup: four steps */
+.cb { max-width: 900px; }
+.cb-step.done { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.cb-key code { user-select: all; word-break: break-all; font-size: 13px; padding: 8px 10px; }
