@@ -16,7 +16,7 @@
   "icon": "icon.svg",
   "banner": "banner.svg",
   "color": "#2563eb",
-  "category": "other",
+  "category": "data",
   "hostwerk": ">=2.10.0",
   "permissions": [
     "native"
