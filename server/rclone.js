@@ -181,15 +181,23 @@ class Rclone {
       return { ok: true, text: 'Target reachable, written, read back and decrypted.', free };
     } finally { fs.rmSync(tmp, { force: true }); }
   }
-  async upload({ files, name, keep, log = () => {} }) {
+  /**
+   * prune (optional, Hostwerk 3.0): decides which backups go – it keeps older backups that newer ones still point to
+   * ("only changes"). Without it the plain "keep the newest n" applies.
+   */
+  async upload({ files, name, keep, prune, log = () => {} }) {
     for (const f of files) { log(`→ ${path.basename(f)}`); await this.rc(['copyto', f, `hwc:${name}/${path.basename(f)}`, '--retries', '3', ...bwArg(this.limits())]); }
     const dirs = (await this.rc(['lsf', 'hwc:', '--dirs-only'], { timeout: 120000 })).stdout.split(/\r?\n/).filter(Boolean);
-    for (const old of toPrune(dirs, keep)) { log(`✕ ${old}`); await this.rc(['purge', `hwc:${old}`], { allowFail: true }); }
+    const names = dirs.map((d) => d.replace(/\/$/, '')).filter((d) => /^hostwerk-/.test(d));
+    const drop = typeof prune === 'function' ? await prune(names) : toPrune(dirs, keep);
+    for (const old of drop) { log(`✕ ${old}`); await this.rc(['purge', `hwc:${old}`], { allowFail: true }); }
   }
   async stat(name, file) {
     const r = await this.rc(['lsjson', `hwc:${name}/${file}`], { timeout: 120000, allowFail: true });
     try { const j = JSON.parse(r.stdout); return j[0] ? { size: j[0].Size } : null; } catch { return null; }
   }
+  /** Unchanged file of an earlier backup into the new one – rclone copies on the server where the target can (no upload). */
+  async copy(fromName, file, toName) { await this.rc(['copyto', `hwc:${fromName}/${file}`, `hwc:${toName}/${file}`, '--retries', '3']); }
   async fetch(name, file, dest) { await this.rc(['copyto', `hwc:${name}/${file}`, dest, ...bwArg(this.limits())]); }
   async list() {
     const r = await this.rc(['lsf', 'hwc:', '--dirs-only'], { timeout: 120000, allowFail: true });

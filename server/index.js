@@ -75,9 +75,9 @@ function activate(host) {
   if (ctx.offsiteTargets) ctx.offsiteTargets.set('cloud', {
     label: () => host.t('Cloud (encrypted)'),
     test: async () => { const r = await rc.test(); return { ok: r.ok, text: host.t(r.text) }; },
-    upload: async ({ files, name, job, keep }) => {
+    upload: async ({ files, name, job, keep, prune }) => {
       try {
-        await rc.upload({ files, name, keep, log: (l) => job.log(l) });
+        await rc.upload({ files, name, keep, prune, log: (l) => job.log(l) });
         remember({ ok: true, name, files: files.length });
       } catch (e) {
         remember({ ok: false, name, error: String(e.message || e).slice(0, 300) });
@@ -86,6 +86,9 @@ function activate(host) {
     },
     stat: (name, file) => rc.stat(name, file),
     fetch: (name, file, dest) => rc.fetch(name, file, dest),
+    // „Nur Änderungen“ (Hostwerk 3.0): unveränderte Dateien kopiert rclone am Ziel, statt sie erneut hochzuladen
+    list: () => rc.list(),
+    copy: (fromName, file, toName) => rc.copy(fromName, file, toName),
   });
 
   host.provide('cloudBackup', {

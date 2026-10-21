@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Only changes (Hostwerk 3.0 and newer): unchanged files of the external backup are copied at the target instead of uploaded again, and old backups that newer ones still point to are kept. / Nur Änderungen (ab Hostwerk 3.0): unveränderte Dateien der externen Sicherung werden am Ziel kopiert statt erneut hochgeladen; alte Stände, auf die neuere noch verweisen, bleiben erhalten.
+
 ## 1.1.0
 
 - Recovery key of another PC can be entered – after a move, the old backups at the target can be read again. / Wiederherstellungs-Schlüssel eines anderen PCs eingebbar – nach einem Umzug lassen sich die alten Sicherungen am Ziel wieder lesen.

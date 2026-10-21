@@ -116,6 +116,13 @@ test('connect, test, upload with retention, list, stat, fetch (with a stand-in f
   assert.strictEqual(await rc.stat('hostwerk-2026-10-03', 'nope.zip'), null);
   const back = path.join(root, 'back.zip'); await rc.fetch('hostwerk-2026-10-02', 'b.zip', back);
   assert.strictEqual(fs.readFileSync(back, 'utf8'), 'content b.zip');
+  // „Nur Änderungen“: unveränderte Datei am Ziel kopieren, Hostwerks prune() entscheidet über das Löschen
+  await rc.copy('hostwerk-2026-10-03', 'b.zip', 'hostwerk-2026-10-05');
+  const asked = [];
+  await rc.upload({ files: files.slice(0, 1), name: 'hostwerk-2026-10-05', keep: 1, prune: async (names) => { asked.push(...names); return ['hostwerk-2026-10-02']; } });
+  assert.ok(asked.includes('hostwerk-2026-10-05') && asked.every((n) => !n.endsWith('/')), 'prune sees the backups without slash');
+  assert.deepStrictEqual(await rc.list(), ['hostwerk-2026-10-05', 'hostwerk-2026-10-04', 'hostwerk-2026-10-03'], 'only what prune said is gone – keep: 1 is ignored');
+  assert.deepStrictEqual(await rc.stat('hostwerk-2026-10-05', 'b.zip'), { size: 'content b.zip'.length }, 'copied file is there');
 });
 
 test('messages have German', () => {
