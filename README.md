@@ -16,6 +16,14 @@ Hostwerk's external backup to the cloud too: OneDrive, Google Drive, S3 (AWS, Cl
 - Connection test: write, read back, decrypt
 - rclone is downloaded from the official site with checksum check
 
+## New in 1.1
+
+- Enter the recovery key of another PC – after a move, older backups can be read again
+- Secrets (S3 keys, passwords, encryption password) never in rclone.conf or the process list
+- OneDrive Business and SharePoint, sign-in on another PC for servers without a screen
+- Backups at the target and the last runs on the page, free space, bandwidth limit with time window
+- Runs (also failed ones) in the backup calendar (service `cloudBackup`)
+
 ## Install
 
 In Hostwerk: **Extensions → Discover** and click “Install”.

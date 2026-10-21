@@ -9,7 +9,7 @@
     "de": "Hostwerks externe Sicherung zusätzlich in die Cloud: OneDrive, Google Drive, S3 (AWS, Cloudflare R2, Backblaze …), Nextcloud/WebDAV oder SFTP – auf diesem PC verschlüsselt, mit Wiederherstellungs-Schlüssel und derselben Wiederherstellungs-Probe.",
     "en": "Hostwerk's external backup to the cloud too: OneDrive, Google Drive, S3 (AWS, Cloudflare R2, Backblaze …), Nextcloud/WebDAV or SFTP – encrypted on this PC, with a recovery key and the same restore probe."
   },
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Hostwerk",
   "homepage": "https://github.com/Passimoritz/hostwerk-ext-cloud-backup",
   "license": "MIT",
@@ -30,8 +30,28 @@
       "de": "Sicherungen verschlüsselt in die Cloud.",
       "en": "Backups encrypted to the cloud."
     },
-    "icon": "cloud-upload"
+    "icon": "cloud-upload",
+    "nav": {
+      "group": "system"
+    }
   },
   "backend": "server/index.js",
-  "ui": "ui/index.js"
+  "ui": "ui/index.js",
+  "provides": [
+    "cloudBackup"
+  ],
+  "synergies": [
+    {
+      "with": "backup-calendar",
+      "title": {
+        "de": "Läufe der Cloud-Sicherung im Sicherungs-Kalender – auch Fehlschläge",
+        "en": "Cloud backup runs in the backup calendar – failures included"
+      }
+    }
+  ],
+  "allowExtensions": {
+    "*": [
+      "tabs"
+    ]
+  }
 }

@@ -16,6 +16,14 @@ Hostwerks externe Sicherung zusätzlich in die Cloud: OneDrive, Google Drive, S3
 - Verbindungs-Test: schreiben, zurücklesen, entschlüsseln
 - rclone kommt von der offiziellen Seite, mit Prüfsummen-Kontrolle
 
+## Neu in 1.1
+
+- Wiederherstellungs-Schlüssel eines anderen PCs eingeben – nach einem Umzug sind ältere Sicherungen wieder lesbar
+- Geheimnisse (S3-Schlüssel, Passwörter, Verschlüsselungs-Passwort) nie in rclone.conf oder der Prozessliste
+- OneDrive Business und SharePoint, Anmeldung auf einem anderen PC für Server ohne Bildschirm
+- Sicherungen am Ziel und die letzten Läufe auf der Seite, freier Platz, Bandbreitengrenze mit Zeitfenster
+- Läufe (auch fehlgeschlagene) im Sicherungs-Kalender (Dienst `cloudBackup`)
+
 ## Installieren
 
 In Hostwerk: **Erweiterungen → Entdecken** und „Installieren“ klicken.
