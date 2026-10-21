@@ -10,6 +10,7 @@ Hostwerk's external backup to the cloud too: OneDrive, Google Drive, S3 (AWS, Cl
 
 ## What it does
 
+- **Where:** Backups → Cloud backup – no own sidebar entry since 1.4.0; the full page stays under Extensions → Open
 - Adds the target “Cloud (encrypted)” to Hostwerk's external backup – schedule, retention, alerts and restore probe stay as they are
 - OneDrive and Google Drive (sign-in in the browser), S3-compatible storage, Nextcloud/WebDAV, SFTP
 - Encrypted on this PC with rclone crypt (names too) – the provider never sees the content; recovery key to keep safe

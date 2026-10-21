@@ -224,4 +224,9 @@ function CloudBackupPage() {
 
 export default {
   pages: { main: CloudBackupPage },
+  slots: {
+    // Seit Hostwerk 3.0 (SDK 3.2) ohne eigenen Seitenleisten-Eintrag ("nav": false) – die ganze Seite als Reiter im passenden Bereich;
+    // Hostwerk blendet dabei ihren Titel aus (Reiter + Herkunftszeile sagen schon, was es ist), die Knöpfe bleiben
+    'backups.tabs': [{ id: 'cloud', title: 'Cloud backup', icon: CloudUpload, Component: CloudBackupPage, order: 40 }],
+  },
 };

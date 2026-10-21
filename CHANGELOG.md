@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Lives where it belongs: Backups → Cloud backup – no own sidebar entry any more (Hostwerk 3.0+); the full page stays under Extensions → Open and can be pinned in the sidebar settings. / Steckt jetzt dort, wo sie hingehört: Sicherungen → Cloud-Sicherung – kein eigener Seitenleisten-Eintrag mehr (Hostwerk 3.0+); die ganze Seite bleibt unter Erweiterungen → Öffnen und lässt sich in den Seitenleisten-Einstellungen anheften.
+
 ## 1.3.0
 
 - The very first connection always failed: since 1.1 the encryption password only reaches rclone as environment variable, but the test right after connecting ran before it was stored ("password not set in config file"). The test now gets the new secrets. / Die allererste Verbindung schlug immer fehl: seit 1.1 erreicht das Verschlüsselungs-Passwort rclone nur als Umgebungsvariable, der Test direkt nach dem Verbinden lief aber, bevor es gespeichert war („password not set in config file“). Der Test bekommt die neuen Geheimnisse jetzt mit.

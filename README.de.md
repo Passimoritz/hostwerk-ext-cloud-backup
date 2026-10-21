@@ -10,6 +10,7 @@ Hostwerks externe Sicherung zusätzlich in die Cloud: OneDrive, Google Drive, S3
 
 ## Was sie kann
 
+- **Wo:** Sicherungen → Cloud-Sicherung – seit 1.4.0 ohne eigenen Seitenleisten-Eintrag; die ganze Seite bleibt unter Erweiterungen → Öffnen
 - Fügt Hostwerks externer Sicherung das Ziel „Cloud (verschlüsselt)“ hinzu – Zeitplan, Aufbewahrung, Alarme und Wiederherstellungs-Probe bleiben, wie sie sind
 - OneDrive und Google Drive (Anmeldung im Browser), S3-kompatibler Speicher, Nextcloud/WebDAV, SFTP
 - Auf diesem PC verschlüsselt mit rclone crypt (auch die Namen) – der Anbieter sieht nie den Inhalt; Wiederherstellungs-Schlüssel zum sicheren Aufbewahren
