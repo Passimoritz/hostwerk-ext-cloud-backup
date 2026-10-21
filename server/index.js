@@ -5,7 +5,8 @@
  * the connection and the encryption.
  *   GET    /api/cloud-backup              → state (program, target, encryption, selected in Hostwerk?, runs, limits)
  *   POST   /api/cloud-backup/install      → job: download rclone (official, SHA-256 checked)
- *   POST   /api/cloud-backup/signin       → { kind: onedrive|drive } – sign-in in the browser on this PC
+ *   POST   /api/cloud-backup/signin       → { kind: onedrive|drive, clientId?, clientSecret? } – sign-in in the browser on this
+ *                                           PC (own app registration optional – rclone's shared Google client ID is retired)
  *   POST   /api/cloud-backup/token        → { kind, token } – sign-in token from another PC ("rclone authorize", for servers
  *                                           without a screen)
  *   POST   /api/cloud-backup/connect      → { kind, form } – set up target + encryption, then test
@@ -26,6 +27,8 @@ const { spawn } = require('child_process');
 const { Rclone, KINDS, tokenFrom, backupTime, validKey } = require('./rclone');
 
 const MAX_RUNS = 60;
+/** Form fields that are kept sealed and never shown again (the page gets •••••• back). */
+const SECRET_FIELDS = ['pass', 'secretKey', 'token', 'accessKey', 'clientSecret'];
 let state = null;
 
 function activate(host) {
@@ -43,6 +46,7 @@ function activate(host) {
   const secretEnv = () => { const c = cfg(); if (!c.env) return {}; try { return JSON.parse(secrets.open(c.env)); } catch { return {}; } };
   const rc = new Rclone({ dir, bin: path.join(ctx.paths.bin, 'rclone'), run: (f, a, o) => exec(f, a, o), download: dl.downloadFile, extract: dl.extractZip, fetchText: (u) => dl.fetchText(u), env: secretEnv, limits: () => cfg().limits || {} });
   const pending = new Map(); // kind → token after sign-in
+  const pendingClient = new Map(); // kind → own app registration used for that sign-in
   state = { rc, pending, ctx };
   const changed = () => host.broadcast({ type: 'cloud-backup' });
 
@@ -51,7 +55,7 @@ function activate(host) {
 
   const view = () => {
     const c = cfg(); const e = rc.exe(); const o = ctx.monitor ? ctx.monitor.offsite : {};
-    const form = { ...(c.form || {}) }; for (const k of ['pass', 'secretKey', 'token', 'accessKey']) if (form[k]) form[k] = '••••••';
+    const form = { ...(c.form || {}) }; for (const k of SECRET_FIELDS) if (form[k]) form[k] = '••••••';
     return {
       installed: e ? e.version : null, kinds: Object.entries(KINDS).map(([id, k]) => ({ id, label: k.label, oauth: !!k.oauth, fields: k.fields || [] })), kind: c.kind || null, form,
       connected: rc.connected(), hasKey: !!c.key, keySeen: !!c.keySeen, keyFromElsewhere: !!c.keyFromElsewhere, lastTest: c.lastTest || null,
@@ -64,12 +68,12 @@ function activate(host) {
   /** Set up target + encryption with the stored (sealed) values; key = plain crypt password. */
   const connectWith = async (kind, form, key) => {
     const env = await rc.connect(kind, form, key);
-    const t = await rc.test();
-    const sealed = { ...form }; for (const k of ['pass', 'secretKey', 'token', 'accessKey']) if (sealed[k]) sealed[k] = secrets.seal(sealed[k]);
+    const t = await rc.test(env);
+    const sealed = { ...form }; for (const k of SECRET_FIELDS) if (sealed[k]) sealed[k] = secrets.seal(sealed[k]);
     update((c) => { Object.assign(c, { kind, form: sealed, key: secrets.seal(key), env: secrets.seal(JSON.stringify(env)), lastTest: { t: Date.now(), ok: t.ok, text: t.text, free: t.free ?? null } }); });
     return t;
   };
-  const openForm = (c) => { const f = { ...(c.form || {}) }; for (const k of ['pass', 'secretKey', 'token', 'accessKey']) if (f[k]) { try { f[k] = secrets.open(f[k]); } catch { f[k] = ''; } } return f; };
+  const openForm = (c) => { const f = { ...(c.form || {}) }; for (const k of SECRET_FIELDS) if (f[k]) { try { f[k] = secrets.open(f[k]); } catch { f[k] = ''; } } return f; };
 
   // Target for Hostwerk's external backup
   if (ctx.offsiteTargets) ctx.offsiteTargets.set('cloud', {
@@ -80,8 +84,10 @@ function activate(host) {
         await rc.upload({ files, name, keep, prune, log: (l) => job.log(l) });
         remember({ ok: true, name, files: files.length });
       } catch (e) {
-        remember({ ok: false, name, error: String(e.message || e).slice(0, 300) });
-        throw e;
+        // In Hostwerks Verlauf und Meldungen in der Sprache der Oberfläche (Fehler kommen englisch aus rclone.js)
+        const msg = host.t(String(e.message || e));
+        remember({ ok: false, name, error: msg.slice(0, 300) });
+        throw new Error(msg);
       } finally { changed(); }
     },
     stat: (name, file) => rc.stat(name, file),
@@ -111,12 +117,19 @@ function activate(host) {
     res.json({ job: job.id });
   });
   host.router.post('/cloud-backup/signin', async (req, res) => {
-    const kind = String((req.body || {}).kind || '');
+    const b = req.body || {};
+    const kind = String(b.kind || '');
     if (!KINDS[kind] || !KINDS[kind].oauth) throw host.error(400, 'Unknown target');
     const e = rc.exe(); if (!e) throw host.error(409, 'rclone is not installed yet.');
+    // Own app registration: as environment for rclone (not on the command line – the process list would show the secret)
+    const K = KINDS[kind].oauth.toUpperCase();
+    const c = cfg(); const old = c.kind === kind ? openForm(c) : {};
+    const id = String(b.clientId || '').trim() || old.clientId || '';
+    const secret = b.clientSecret && b.clientSecret !== '••••••' ? String(b.clientSecret) : old.clientSecret || '';
+    const own = id ? { [`RCLONE_${K}_CLIENT_ID`]: id, ...(secret ? { [`RCLONE_${K}_CLIENT_SECRET`]: secret } : {}) } : {};
     // rclone opens the sign-in page in the browser of this PC and waits on 127.0.0.1:53682 for the answer
     const out = await new Promise((resolve, reject) => {
-      const p = spawn(e.file, ['authorize', KINDS[kind].oauth], { windowsHide: true });
+      const p = spawn(e.file, ['authorize', KINDS[kind].oauth], { windowsHide: true, env: { ...process.env, ...own } });
       let buf = '';
       const t = setTimeout(() => { p.kill(); reject(host.error(408, 'Sign-in was not finished within 5 minutes.')); }, 5 * 60000);
       p.stdout.on('data', (d) => { buf += d; }); p.stderr.on('data', (d) => { buf += d; });
@@ -126,6 +139,8 @@ function activate(host) {
     const token = tokenFrom(out);
     if (!token) throw host.error(400, 'Sign-in did not return access – please try again.');
     pending.set(kind, token);
+    // The token belongs to this app registration – connect() has to use the same one
+    if (id) pendingClient.set(kind, { clientId: id, clientSecret: secret }); else pendingClient.delete(kind);
     res.json(view());
   });
   // Server without a screen: sign in on another PC with "rclone authorize" and paste the result here
@@ -144,13 +159,18 @@ function activate(host) {
     const old = c.kind === kind ? openForm(c) : {};
     const form = { ...(b.form || {}) };
     // unchanged secrets come back as ••••••
-    for (const k of ['pass', 'secretKey', 'accessKey']) if (form[k] === '••••••') form[k] = old[k] || '';
-    if (KINDS[kind].oauth) form.token = pending.get(kind) || old.token || '';
-    else delete form.token;
+    for (const k of ['pass', 'secretKey', 'accessKey', 'clientSecret']) if (form[k] === '••••••') form[k] = old[k] || '';
+    if (KINDS[kind].oauth) {
+      form.token = pending.get(kind) || old.token || '';
+      const pc = pending.has(kind) ? pendingClient.get(kind) : null;
+      if (pc && !form.clientId) Object.assign(form, pc);
+      if (!form.clientId) delete form.clientSecret;
+    }
+    else { delete form.token; delete form.clientId; delete form.clientSecret; }
     if (kind !== 'onedrive') delete form.site;
     const key = c.key ? secrets.open(c.key) : crypto.randomBytes(24).toString('base64url');
     const t = await connectWith(kind, form, key);
-    pending.delete(kind);
+    pending.delete(kind); pendingClient.delete(kind);
     if (!t.ok) throw host.error(400, t.text);
     changed();
     res.json(view());

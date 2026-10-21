@@ -16,6 +16,14 @@ Hostwerk's external backup to the cloud too: OneDrive, Google Drive, S3 (AWS, Cl
 - Connection test: write, read back, decrypt
 - rclone is downloaded from the official site with checksum check
 
+## New in 1.3
+
+- The first connection works (1.1/1.2 ran its test without the encryption password)
+- OneDrive works again with current rclone: the setup answers rclone's questions (before it stopped at "replace token?" and every backup failed with "unable to get drive_id")
+- Own app registration (client ID + secret) for Google Drive and OneDrive – rclone's shared Google app is being retired during 2026
+- Clear messages for an expired sign-in, a full target, wrong S3 keys or passwords and an unreachable target
+- Checked against simulated services: S3, WebDAV and SFTP servers, Google Drive and OneDrive with sign-in, token refresh, rate limits (429) and a full drive (`scripts/real-probes.js --only sim` in Hostwerk)
+
 ## New in 1.1
 
 - Enter the recovery key of another PC – after a move, older backups can be read again

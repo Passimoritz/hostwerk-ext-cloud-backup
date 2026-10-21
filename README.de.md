@@ -16,6 +16,14 @@ Hostwerks externe Sicherung zusätzlich in die Cloud: OneDrive, Google Drive, S3
 - Verbindungs-Test: schreiben, zurücklesen, entschlüsseln
 - rclone kommt von der offiziellen Seite, mit Prüfsummen-Kontrolle
 
+## Neu in 1.3
+
+- Die erste Verbindung klappt (1.1/1.2 testeten sie ohne das Verschlüsselungs-Passwort)
+- OneDrive geht mit aktuellem rclone wieder: die Einrichtung beantwortet die Rückfragen von rclone (vorher blieb sie bei „Token ersetzen?“ stehen und jede Sicherung scheiterte mit „unable to get drive_id“)
+- Eigene App-Registrierung (Client-ID + Geheimnis) für Google Drive und OneDrive – die gemeinsame Google-App von rclone wird 2026 abgeschaltet
+- Klare Meldungen bei abgelaufener Anmeldung, vollem Ziel, falschen S3-Schlüsseln oder Passwörtern und nicht erreichbarem Ziel
+- Geprüft gegen nachgebildete Dienste: S3-, WebDAV- und SFTP-Server, Google Drive und OneDrive mit Anmeldung, Token-Erneuerung, Ratenbegrenzung (429) und vollem Speicher (`scripts/real-probes.js --only sim` in Hostwerk)
+
 ## Neu in 1.1
 
 - Wiederherstellungs-Schlüssel eines anderen PCs eingeben – nach einem Umzug sind ältere Sicherungen wieder lesbar

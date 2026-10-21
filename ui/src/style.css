@@ -9,3 +9,5 @@
 .cb-list { display: grid; gap: var(--sp-1); max-height: 260px; overflow: auto; }
 .cb-limits { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-3); align-items: end; }
 .cb-limits-save { padding-bottom: var(--sp-1); }
+.cb-own summary { cursor: pointer; min-height: 24px; display: flex; align-items: center; }
+.cb-own[open] summary { margin-bottom: var(--sp-2); }

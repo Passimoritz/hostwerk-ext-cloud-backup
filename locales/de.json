@@ -110,5 +110,42 @@
   "rclone could not prepare the password.": "rclone konnte das Passwort nicht vorbereiten.",
   "uploaded": "hochgeladen",
   "failed": "fehlgeschlagen",
-  "The SharePoint address looks like https://company.sharepoint.com/sites/name.": "Die SharePoint-Adresse sieht so aus: https://firma.sharepoint.com/sites/name."
+  "The SharePoint address looks like https://company.sharepoint.com/sites/name.": "Die SharePoint-Adresse sieht so aus: https://firma.sharepoint.com/sites/name.",
+  "rclone keeps asking during the setup – please try again.": "rclone fragt bei der Einrichtung immer weiter – bitte nochmal versuchen.",
+  "$patterns": [
+    [
+      "The sign-in at the cloud is no longer valid (expired or access withdrawn) – please sign in again under “Target”. Details: {}",
+      "Die Anmeldung bei der Cloud gilt nicht mehr (abgelaufen oder Zugriff entzogen) – bitte unter „Ziel“ neu anmelden. Details: {}"
+    ],
+    [
+      "The target is full – free up space there or keep fewer backups. Details: {}",
+      "Das Ziel ist voll – dort Platz schaffen oder weniger Sicherungen behalten. Details: {}"
+    ],
+    [
+      "The S3 target rejects the access key or secret key – please check both. Details: {}",
+      "Das S3-Ziel lehnt den Zugriffs- oder geheimen Schlüssel ab – bitte beide prüfen. Details: {}"
+    ],
+    [
+      "User name or password for the target is wrong. Details: {}",
+      "Benutzername oder Passwort für das Ziel stimmen nicht. Details: {}"
+    ],
+    [
+      "The target cannot be reached – is the address right and the server online? Details: {}",
+      "Das Ziel ist nicht erreichbar – stimmt die Adresse und ist der Server an? Details: {}"
+    ],
+    [
+      "rclone setup: {}",
+      "rclone-Einrichtung: {}"
+    ],
+    [
+      "rclone setup needs an answer: {}",
+      "Die rclone-Einrichtung braucht eine Antwort: {}"
+    ]
+  ],
+  "Client ID": "Client-ID",
+  "Client secret": "Client-Geheimnis",
+  "Own app registration (optional)": "Eigene App-Registrierung (optional)",
+  "Only needed if the sign-in with rclone's shared app no longer works.": "Nur nötig, wenn die Anmeldung über die gemeinsame App von rclone nicht mehr klappt.",
+  "Own app registration": "Eigene App-Registrierung",
+  "Google is retiring the app that rclone shares among all users during 2026. With your own app (Google Cloud Console → APIs → Credentials → OAuth client of type “Desktop app”, Drive API switched on; Microsoft: app registration in Entra ID) the sign-in keeps working. Enter it before signing in.": "Google schaltet die App, die sich alle rclone-Nutzer teilen, im Lauf von 2026 ab. Mit einer eigenen App (Google Cloud Console → APIs → Anmeldedaten → OAuth-Client vom Typ „Desktop-App“, Drive-API eingeschaltet; Microsoft: App-Registrierung in Entra ID) klappt die Anmeldung weiter. Vor dem Anmelden eintragen."
 }

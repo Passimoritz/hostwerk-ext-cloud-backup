@@ -12,9 +12,9 @@ import './style.css';
  */
 const locale = () => (typeof document !== 'undefined' && document.documentElement.lang) || 'en';
 const when = (ts) => (ts ? new Date(ts).toLocaleString(locale(), { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–');
-const LABELS = { endpoint: 'Endpoint (empty = AWS)', region: 'Region', bucket: 'Bucket', accessKey: 'Access key', secretKey: 'Secret key', url: 'WebDAV address', user: 'User', pass: 'Password', host: 'Server', port: 'Port', folder: 'Folder at the target', site: 'SharePoint site (optional)' };
+const LABELS = { endpoint: 'Endpoint (empty = AWS)', region: 'Region', bucket: 'Bucket', accessKey: 'Access key', secretKey: 'Secret key', url: 'WebDAV address', user: 'User', pass: 'Password', host: 'Server', port: 'Port', folder: 'Folder at the target', site: 'SharePoint site (optional)', clientId: 'Client ID', clientSecret: 'Client secret' };
 const HINTS = { endpoint: 'e.g. https://ACCOUNT.r2.cloudflarestorage.com or https://s3.eu-central-003.backblazeb2.com', url: 'Nextcloud: https://cloud.example.org/remote.php/dav/files/USER/', folder: 'Hostwerk creates it if needed.', site: 'Empty = your own OneDrive (personal or Business). For a SharePoint library: https://company.sharepoint.com/sites/name' };
-const SECRET = new Set(['pass', 'secretKey', 'accessKey']);
+const SECRET = new Set(['pass', 'secretKey', 'accessKey', 'clientSecret']);
 
 function Step({ n, done, title, children }) {
   return (
@@ -26,12 +26,12 @@ function Step({ n, done, title, children }) {
 }
 
 /** Sign-in on another PC: "rclone authorize" there, paste the result here (servers without a screen). */
-function TokenPaste({ kind, label, onDone }) {
+function TokenPaste({ kind, label, client, onDone }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   if (!open) return <button type="button" className="btn ghost sm" onClick={() => setOpen(true)}><ClipboardPaste size={14} />Sign in on another PC</button>;
-  const cmd = `rclone authorize "${kind}"`;
+  const cmd = `rclone authorize "${kind}"${client && client.clientId ? ` "${client.clientId}" "${client.clientSecret && client.clientSecret !== '••••••' ? client.clientSecret : 'CLIENT_SECRET'}"` : ''}`;
   return (
     <div className="stack cb-paste">
       <div className="small">{t('On a PC with a browser: install rclone, run {cmd}, sign in to {label} and copy everything between ---> and <---.', { cmd, label })}</div>
@@ -40,6 +40,23 @@ function TokenPaste({ kind, label, onDone }) {
       <div className="row-tight"><Btn className="sm" busy={busy} disabled={!text.trim()} onClick={async () => { setBusy(true); try { onDone(await post('/cloud-backup/token', { kind, token: text })); setText(''); setOpen(false); toast.success('Sign-in taken over'); } catch (e) { toast.error(e); } setBusy(false); }}>Use this sign-in</Btn>
         <Btn className="sm ghost" onClick={() => setOpen(false)}>Cancel</Btn></div>
     </div>
+  );
+}
+
+/** Own app registration for Google/Microsoft – rclone's shared Google client ID is being retired during 2026. */
+function OwnApp({ f, setForm }) {
+  return (
+    <details className="cb-own" open={!!f.clientId}>
+      <summary className="small">Own app registration (optional)</summary>
+      <div className="stack cb-body">
+        <div className="row-tight small muted">Only needed if the sign-in with rclone's shared app no longer works.
+          <InfoTip title="Own app registration">Google is retiring the app that rclone shares among all users during 2026. With your own app (Google Cloud Console → APIs → Credentials → OAuth client of type “Desktop app”, Drive API switched on; Microsoft: app registration in Entra ID) the sign-in keeps working. Enter it before signing in.</InfoTip>
+        </div>
+        <div className="form-grid">
+          {['clientId', 'clientSecret'].map((x) => <Field key={x} label={LABELS[x]}><input className="input mono" type={SECRET.has(x) ? 'password' : 'text'} autoComplete="off" value={f[x] || ''} onChange={(e) => setForm({ ...f, [x]: e.target.value })} /></Field>)}
+        </div>
+      </div>
+    </details>
   );
 }
 
@@ -116,7 +133,7 @@ function CloudBackupPage() {
   const fields = [...(info.fields || []), ...(k === 'onedrive' ? ['site'] : [])];
   const run = async (what, fn) => { setBusy(what); try { await fn(); } catch (e) { toast.error(e); } setBusy(null); };
   const install = () => run('install', async () => { const r = await post('/cloud-backup/install'); await waitJob(r.job); st.reload(); toast.success('rclone installed'); });
-  const signin = () => run('signin', async () => { toast('Your browser opens – sign in there and allow access.'); st.setData(await post('/cloud-backup/signin', { kind: k })); toast.success('Signed in'); });
+  const signin = () => run('signin', async () => { toast('Your browser opens – sign in there and allow access.'); st.setData(await post('/cloud-backup/signin', { kind: k, clientId: f.clientId || '', clientSecret: f.clientSecret || '' })); toast.success('Signed in'); });
   const connect = () => run('connect', async () => { st.setData(await post('/cloud-backup/connect', { kind: k, form: f })); setForm(null); toast.success('Connected and tested'); });
   const test = () => run('test', async () => { const r = await post('/cloud-backup/test'); if (r.ok) toast.success(r.text); else toast.error(r.text); st.reload({ silent: true }); });
   const showKey = () => run('key', async () => { setKey((await get('/cloud-backup/key')).key); st.reload({ silent: true }); });
@@ -152,10 +169,11 @@ function CloudBackupPage() {
             <div className="row-tight cb-wrap">
               {s.desktop && <Btn icon={LogIn} busy={busy === 'signin'} disabled={!s.installed} onClick={signin}>{signedIn ? 'Signed in – sign in again' : t('Sign in to {label}', { label: info.label })}</Btn>}
               {signedIn && !s.desktop && <span className="badge ok">Signed in</span>}
-              <TokenPaste kind={k} label={info.label} onDone={st.setData} />
+              <TokenPaste kind={k} label={info.label} client={f} onDone={st.setData} />
               {!s.desktop && <span className="small muted">This Hostwerk has no screen – sign in on another PC and paste the result here.</span>}
             </div>
           )}
+          {info.oauth && <OwnApp f={f} setForm={setForm} />}
           {fields.length > 0 && (
             <div className="form-grid">
               {fields.map((x) => <Field key={x} label={LABELS[x]} hint={HINTS[x]}><input className={`input ${['url', 'endpoint', 'host', 'site'].includes(x) ? 'mono' : ''}`} type={SECRET.has(x) ? 'password' : 'text'} autoComplete="off" value={f[x] || ''} onChange={(e) => setForm({ ...f, [x]: e.target.value })} /></Field>)}
