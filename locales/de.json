@@ -112,6 +112,16 @@
   "failed": "fehlgeschlagen",
   "The SharePoint address looks like https://company.sharepoint.com/sites/name.": "Die SharePoint-Adresse sieht so aus: https://firma.sharepoint.com/sites/name.",
   "rclone keeps asking during the setup – please try again.": "rclone fragt bei der Einrichtung immer weiter – bitte nochmal versuchen.",
+  "done": "erledigt",
+  "open": "offen",
+  "Fold": "Zuklappen",
+  "Change": "Ändern",
+  "Open": "Öffnen",
+  "Not connected yet": "Noch nicht verbunden",
+  "Uses the key of another PC": "Nutzt den Schlüssel eines anderen PCs",
+  "Shown and kept safe": "Angezeigt und sicher verwahrt",
+  "Not shown yet": "Noch nicht angezeigt",
+  "Not in use yet": "Noch nicht in Gebrauch",
   "$patterns": [
     [
       "The sign-in at the cloud is no longer valid (expired or access withdrawn) – please sign in again under “Target”. Details: {}",

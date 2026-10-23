@@ -1,3 +1,7 @@
+## 1.5.0
+
+- Fits on one screen: finished steps become one line with a tick and a short summary (“Change” opens them again), only the next open step is unfolded – you see at once what is missing / Passt auf einen Bildschirm: erledigte Schritte werden eine Zeile mit Häkchen und kurzer Zusammenfassung („Ändern“ klappt sie wieder auf), offen ist nur der nächste Schritt – man sieht sofort, was fehlt
+
 ## 1.4.0
 
 - Lives where it belongs: Backups → Cloud backup – no own sidebar entry any more (Hostwerk 3.0+); the full page stays under Extensions → Open and can be pinned in the sidebar settings. / Steckt jetzt dort, wo sie hingehört: Sicherungen → Cloud-Sicherung – kein eigener Seitenleisten-Eintrag mehr (Hostwerk 3.0+); die ganze Seite bleibt unter Erweiterungen → Öffnen und lässt sich in den Seitenleisten-Einstellungen anheften.

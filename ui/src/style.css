@@ -1,6 +1,7 @@
 /* Cloud backup: four steps */
-.cb { max-width: 900px; gap: var(--sp-4); }
+.cb { max-width: 900px; gap: var(--sp-3); }
 .cb-step.is-done { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.cb-sum { min-width: 0; }
 .cb-body { gap: var(--sp-3); }
 .cb-wrap { flex-wrap: wrap; }
 .cb-key code, .cb-code { user-select: all; word-break: break-all; font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-3); }

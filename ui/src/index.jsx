@@ -16,11 +16,20 @@ const LABELS = { endpoint: 'Endpoint (empty = AWS)', region: 'Region', bucket: '
 const HINTS = { endpoint: 'e.g. https://ACCOUNT.r2.cloudflarestorage.com or https://s3.eu-central-003.backblazeb2.com', url: 'Nextcloud: https://cloud.example.org/remote.php/dav/files/USER/', folder: 'Hostwerk creates it if needed.', site: 'Empty = your own OneDrive (personal or Business). For a SharePoint library: https://company.sharepoint.com/sites/name' };
 const SECRET = new Set(['pass', 'secretKey', 'accessKey', 'clientSecret']);
 
-function Step({ n, done, title, children }) {
+/**
+ * Ein Schritt der Einrichtung. Erledigte Schritte sind eine Zeile mit Häkchen und Zusammenfassung („Ändern“ klappt sie
+ * auf); offen ist nur der nächste Schritt – so sieht man sofort, was fehlt, und die Seite bleibt kurz.
+ */
+function Step({ n, done, title, summary, open, onToggle, children }) {
+  const icon = done ? <CheckCircle2 size={18} className="c-ok" aria-label={t('done')} /> : <Circle size={18} className="muted" aria-label={t('open')} />;
+  const id = `cb-step-${n}`;
   return (
     <div className={`card cb-step ${done ? 'is-done' : ''}`}>
-      <div className="card-head">{done ? <CheckCircle2 size={18} className="c-ok" aria-label="done" /> : <Circle size={18} className="muted" aria-label="open" />}<h3>{n}. {title}</h3></div>
-      <div className="card-body stack cb-body">{children}</div>
+      <div className="card-head">{icon}<h3 id={`${id}-h`}>{n}. {title}</h3>
+        {!open && summary ? <span className="small muted grow ellipsis cb-sum" title={summary}>{summary}</span> : null}
+        <div className="right"><button type="button" className="btn ghost sm" aria-expanded={open} aria-controls={id} onClick={onToggle}>{open ? t('Fold') : done ? t('Change') : t('Open')}</button></div>
+      </div>
+      {open && <div id={id} className="card-body stack cb-body" role="region" aria-labelledby={`${id}-h`}>{children}</div>}
     </div>
   );
 }
@@ -125,6 +134,7 @@ function CloudBackupPage() {
   const [form, setForm] = useState(null);
   const [key, setKey] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [opened, setOpened] = useState({});
   if (!s && st.error) return <div className="page"><Empty icon={CloudOff} title="Could not load the cloud backup" text={st.error} action={<Btn icon={RotateCw} onClick={() => st.reload()}>Try again</Btn>} /></div>;
   if (!s) return <div className="page"><Loading /></div>;
   const k = kind || s.kind || 'onedrive';
@@ -141,6 +151,12 @@ function CloudBackupPage() {
   const disconnect = () => run('disconnect', async () => { if (await confirmDialog({ title: 'Disconnect the cloud target?', text: 'The backups at the target stay. The external backup is switched off until you choose a target again.', confirm: 'Disconnect', danger: true })) st.setData(await del('/cloud-backup')); });
   const copyKey = async () => { try { await navigator.clipboard.writeText(key); toast.success('Recovery key copied'); } catch { toast.error('Could not copy – select the key and copy it by hand.'); } };
   const signedIn = s.signedIn.includes(k);
+  // Offen ist der erste unerledigte Schritt; sind alle erledigt, bleibt Schritt 4 (Läufe, Sicherungen am Ziel) offen
+  const done = { 1: !!s.installed, 2: !!s.connected, 3: !!s.keySeen, 4: !!(s.selected && s.offsiteEnabled) };
+  const next = [1, 2, 3, 4].find((n) => !done[n]) || 4;
+  const isOpen = (n) => (opened[n] !== undefined ? opened[n] : n === next);
+  const toggle = (n) => setOpened({ ...opened, [n]: !isOpen(n) });
+  const cur = s.kinds.find((x) => x.id === s.kind);
   return (
     <div className="page fade-in">
       <div className="page-head">
@@ -154,7 +170,7 @@ function CloudBackupPage() {
       </div>
       {st.error && <Callout kind="warn" dismissible={false}>{t('Could not refresh: {error}', { error: st.error })}</Callout>}
       <div className="stack cb">
-        <Step n={1} done={!!s.installed} title="Program">
+        <Step n={1} done={done[1]} title="Program" open={isOpen(1)} onToggle={() => toggle(1)} summary={s.installed ? t('rclone {version} is installed.', { version: s.installed }) : null}>
           {s.installed ? <div className="small">{t('rclone {version} is installed.', { version: s.installed })}</div> : (
             <>
               <div className="small muted">rclone is a widely used open-source program for cloud storage. Hostwerk downloads the official version and checks its checksum.</div>
@@ -162,7 +178,7 @@ function CloudBackupPage() {
             </>
           )}
         </Step>
-        <Step n={2} done={s.connected} title="Target">
+        <Step n={2} done={done[2]} title="Target" open={isOpen(2)} onToggle={() => toggle(2)} summary={s.connected ? `${cur ? cur.label : s.kind}${s.form && s.form.folder ? ` · ${s.form.folder}` : ''}` : t('Not connected yet')}>
           <Seg options={s.kinds.map((x) => ({ id: x.id, label: x.label.split(' (')[0] }))} value={k} onChange={(v) => { setKind(v); setForm({ folder: 'hostwerk' }); }} />
           <div className="small muted">{info.label}</div>
           {info.oauth && (
@@ -188,7 +204,7 @@ function CloudBackupPage() {
           {s.lastTest && <Callout kind={s.lastTest.ok ? 'ok' : 'err'} dismissible={false}>{s.lastTest.text}{s.lastTest.ok && s.lastTest.free != null ? ` ${t('Free at the target: {free}.', { free: fmtBytes(s.lastTest.free) })}` : ''}</Callout>}
           {s.connected && !s.migrated && <Callout kind="info" dismissible={false}>Older connection: passwords are still in rclone’s settings file. “Save and test again” moves them into Hostwerk’s sealed storage.</Callout>}
         </Step>
-        <Step n={3} done={s.keySeen} title="Recovery key">
+        <Step n={3} done={done[3]} title="Recovery key" open={isOpen(3)} onToggle={() => toggle(3)} summary={s.keySeen ? (s.keyFromElsewhere ? t('Uses the key of another PC') : t('Shown and kept safe')) : t('Not shown yet')}>
           <div className="small">Everything is encrypted on this PC. Without this key nobody can read the backups – not the provider, but also not you on a new PC. Keep it somewhere safe (password manager, printed).</div>
           {key ? (
             <div className="row-tight cb-key"><code className="grow">{key}</code><Btn className="sm" icon={Copy} onClick={copyKey}>Copy</Btn></div>
@@ -196,7 +212,7 @@ function CloudBackupPage() {
           {s.keyFromElsewhere && <div className="small muted">This PC uses the recovery key of another PC.</div>}
           <KeyFromElsewhere connected={s.connected} onDone={(v) => { setKey(null); st.setData(v); }} />
         </Step>
-        <Step n={4} done={s.selected && s.offsiteEnabled} title="Use for the external backup">
+        <Step n={4} done={done[4]} title="Use for the external backup" open={isOpen(4)} onToggle={() => toggle(4)} summary={done[4] ? (s.lastRun ? t('Last run: {when}', { when: when(s.lastRun) }) : t('Hostwerk\'s external backup goes to the cloud.')) : t('Not in use yet')}>
           {s.selected && s.offsiteEnabled ? (
             <div className="stack cb-body">
               <div className="small row-tight"><ShieldCheck size={15} className="c-ok" />Hostwerk's external backup goes to the cloud.</div>
