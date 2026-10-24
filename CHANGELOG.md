@@ -1,3 +1,7 @@
+## 1.5.1
+
+- New animated icon and banner in the common Hostwerk style (isometric block). / Neues animiertes Symbol und Banner im gemeinsamen Hostwerk-Stil (isometrischer Block).
+
 ## 1.5.0
 
 - Fits on one screen: finished steps become one line with a tick and a short summary (“Change” opens them again), only the next open step is unfolded – you see at once what is missing / Passt auf einen Bildschirm: erledigte Schritte werden eine Zeile mit Häkchen und kurzer Zusammenfassung („Ändern“ klappt sie wieder auf), offen ist nur der nächste Schritt – man sieht sofort, was fehlt
