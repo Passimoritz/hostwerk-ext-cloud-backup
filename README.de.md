@@ -2,6 +2,8 @@
 
 # Cloud-Sicherung
 
+> **Aufgegangen im „Sicherungs-Kalender & Cloud“ (Erweiterung `backup-calendar` 3.0):** Die Cloud-Sicherung steht weiter unter Sicherungen → Cloud-Sicherung. Hostwerk installiert die neue Fassung von selbst und entfernt diese Erweiterung; Verbindung, Schlüssel und Läufe bleiben. Hier gibt es keine neuen Fassungen mehr.
+
 Hostwerks externe Sicherung zusätzlich in die Cloud: OneDrive, Google Drive, S3 (AWS, Cloudflare R2, Backblaze …), Nextcloud/WebDAV oder SFTP – auf diesem PC verschlüsselt, mit Wiederherstellungs-Schlüssel und derselben Wiederherstellungs-Probe.
 
 [English](README.md) · Offizielle [Hostwerk](https://github.com/Passimoritz/hostwerk-public)-Erweiterung (native Erweiterung, ab Hostwerk 2.10)
